@@ -1,0 +1,10 @@
+apiVersion: clustertemplate.openshift.io/v1alpha1
+kind: ClusterTemplateQuota
+metadata:
+  name: example
+  namespace: devuserns
+spec:
+  allowedTemplates:
+    - count: 1
+      name: 1bm
+  budget: 20

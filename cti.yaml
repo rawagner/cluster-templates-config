@@ -1,0 +1,11 @@
+apiVersion: clustertemplate.openshift.io/v1alpha1
+kind: ClusterTemplateInstance
+metadata:
+  name: mycluster2
+  namespace: devuserns
+spec:
+  template: 1bm
+  values:
+    argocdapp: >-
+      https://raw.githubusercontent.com/rawagner/cluster-setup/main/argocd/application.yaml
+    email: rawagner@redhat.com

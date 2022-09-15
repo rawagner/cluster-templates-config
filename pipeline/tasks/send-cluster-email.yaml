@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: send-cluster-email
+spec:
+  params:
+    - description: receiver email
+      name: receiver
+      type: string
+  steps:
+    - env:
+        - name: RECEIVER_EMAIL
+          value: $(params.receiver)
+        - name: GMAIL_APP_PASS
+          value: <<gmail app pass>>
+      image: 'quay.io/rawagner/cluster-email:latest'
+      name: send-cluster-email
+      resources: {}
+  workspaces:
+    - description: Contains kubeconfig file
+      mountPath: /etc/kubeconfig
+      name: kubeconfigSecret
+    - description: Contains kubeadmin pass
+      mountPath: /etc/kubepass
+      name: kubeadminPassSecret

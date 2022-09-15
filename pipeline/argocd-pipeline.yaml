@@ -1,0 +1,110 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: argocd-pipeline
+  namespace: cluster-pipelines
+spec:
+  params:
+    - name: argocdapp
+      type: string
+    - name: email
+      type: string
+  tasks:
+    - name: send-email
+      params:
+        - name: receiver
+          value: $(params.email)
+      runAfter:
+        - create-argocd-app
+      taskRef:
+        kind: ClusterTask
+        name: send-cluster-email
+      workspaces:
+        - name: kubeconfigSecret
+          workspace: kubeconfigSecret
+        - name: kubeadminPassSecret
+          workspace: kubeadminPassSecret
+    - name: create-argocd-app
+      params:
+        - name: script
+          value: kubectl $@
+        - name: args
+          value:
+            - apply -f $(params.argocdapp)
+        - name: image
+          value: >-
+            gcr.io/cloud-builders/kubectl@sha256:8ab94be8b2b4f3d117f02d868b39540fddd225447abf4014f7ba4765cb39f753
+      retries: 10
+      runAfter:
+        - install-operator
+      taskRef:
+        kind: ClusterTask
+        name: kubernetes-actions
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: kubeconfigSecret
+        - name: kubeadmin-dir
+          workspace: kubeadminPassSecret
+    - name: install-operator
+      params:
+        - name: channel
+          value: stable
+        - name: installPlanApproval
+          value: Automatic
+        - name: name
+          value: openshift-gitops-operator
+        - name: source
+          value: redhat-operators
+        - name: sourceNamespace
+          value: openshift-marketplace
+        - name: startingCSV
+          value: openshift-gitops-operator.v1.5.5
+      runAfter:
+        - wait-for-nodes-ready
+      taskRef:
+        kind: ClusterTask
+        name: install-operator
+      workspaces:
+        - name: kubeconfigSecret
+          workspace: kubeconfigSecret
+    - name: wait-for-nodes-ready
+      params:
+        - name: script
+          value: >-
+            while ! kubectl wait node --for=condition=Ready --timeout=600s
+            --all; do sleep 10; done
+        - name: args
+          value:
+            - ''
+        - name: image
+          value: >-
+            gcr.io/cloud-builders/kubectl@sha256:8ab94be8b2b4f3d117f02d868b39540fddd225447abf4014f7ba4765cb39f753
+      retries: 10
+      runAfter:
+        - wait-for-cluster
+      taskRef:
+        kind: ClusterTask
+        name: kubernetes-actions
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: kubeconfigSecret
+    - name: wait-for-cluster
+      params:
+        - name: script
+          value: kubectl $@
+        - name: args
+          value:
+            - get pods
+        - name: image
+          value: >-
+            gcr.io/cloud-builders/kubectl@sha256:8ab94be8b2b4f3d117f02d868b39540fddd225447abf4014f7ba4765cb39f753
+      retries: 100
+      taskRef:
+        kind: ClusterTask
+        name: kubernetes-actions
+      workspaces:
+        - name: kubeconfig-dir
+          workspace: kubeconfigSecret
+  workspaces:
+    - name: kubeconfigSecret
+    - name: kubeadminPassSecret

@@ -1,0 +1,46 @@
+apiVersion: clustertemplate.openshift.io/v1alpha1
+kind: ClusterTemplate
+metadata:
+  name: 1bm
+spec:
+  clusterSetup:
+    - name: argocd
+      pipeline:
+        name: argocd-pipeline
+        namespace: cluster-pipelines
+  cost: 10
+  helmChartRef:
+    name: cluster-template
+    repository: cluster-templates-repo
+    version: 0.1.0
+  properties:
+    - description: base64 encoded pull secret
+      name: pullSecret
+      overwritable: false
+      secretRef:
+        name: myps
+        namespace: myns
+      type: string
+    - defaultValue: rw.com
+      description: base dns domain
+      name: baseDnsDomain
+      overwritable: true
+      type: string
+    - defaultValue: >-
+        ssh-rsa
+        AAAAB3NzaC1yc2EAAAADAQABAAACAQC7Eki8ms2KWXI8Xz8IXU2xhZNh8Dav8Xrrbv2snwDNiwOZ52zQZNzZAasEIKgeBcyw0b2S8Nr+dtvCnOgsS3HS7CK9TF06j1OQ/VFPoqFF6MBLWM2Wvb9L9E82eZoXqzSrQ813hwDsP8iPwrQkIWtKp2Aelj0pYuCU1s2Cxnyp2X2X7cvqphpxqLZ7BYjm3t2MIaQ6RnNoPY7kKZKPtT3Ch84WGTellX8d3DA7QnfPDODs/w1PbJsGpnudnNfSvdn/BlGMBWWTZCBeZp5AeqpCEJe290mWUTQQpy79AX8eUySRVVG7zArS+NtznQrAGq3LX2OFYP9f3XtBsbRljpYKSoORLl5ybAl58o04EA3XjDLk/QCHlYFbAhM8a2jdElof5jdp+bC4jjcBjsVCvCsaVwqUZdg3xt+jSn/lWWOfqqLIt2fs7ldaKS5ygAoxi+4KCzd+VifzHby9O216yT6/thVAUdMnS/tvfnrK7IyIyBZA5iOWVAM6z+FUes0Z5kG7K4zZ/3Bs+lCJ8GK1WIU9PKXlK4nlHjIxg5zyTUmsY3gzzqLlrucxh2/nPCCjR2DTU62QitMDIxo8OvAvxMCBzx9gvsSbe0gZ8g8VF7O5fU0HxBRaSxppLXffg3Bb+EILUZlndTswxALHbIY9C5AQFOcUUd49ojuuhZQwU4OJLQ==
+        rawagner@redhat.com
+      description: ssh public key
+      name: sshPublicKey
+      overwritable: true
+      type: string
+    - clusterSetupName: argocd
+      description: app do deploy
+      name: argocdapp
+      overwritable: true
+      type: string
+    - clusterSetupName: argocd
+      description: dev user email for notifications
+      name: email
+      overwritable: true
+      type: string

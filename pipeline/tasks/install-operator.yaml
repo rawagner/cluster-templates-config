@@ -1,0 +1,45 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: install-operator
+spec:
+  params:
+    - description: operator channel
+      name: channel
+      type: string
+    - description: installPlanApproval
+      name: installPlanApproval
+      type: string
+    - description: operator name
+      name: name
+      type: string
+    - description: source
+      name: source
+      type: string
+    - description: sourceNamespace
+      name: sourceNamespace
+      type: string
+    - description: startingCSV
+      name: startingCSV
+      type: string
+  steps:
+    - env:
+        - name: OPERATOR_CHANNEL
+          value: $(params.channel)
+        - name: OPERATOR_APPROVAL
+          value: $(params.installPlanApproval)
+        - name: OPERATOR_NAME
+          value: $(params.name)
+        - name: OPERATOR_SOURCE
+          value: $(params.source)
+        - name: OPERATOR_SOURCE_NS
+          value: $(params.sourceNamespace)
+        - name: OPERATOR_VERSION
+          value: $(params.startingCSV)
+      image: 'quay.io/rawagner/cluster-setup:latest'
+      name: install-operator
+      resources: {}
+  workspaces:
+    - description: Contains kubeconfig file
+      mountPath: /etc/kubeconfig
+      name: kubeconfigSecret
